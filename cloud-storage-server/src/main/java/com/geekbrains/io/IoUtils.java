@@ -1,9 +1,6 @@
 package com.geekbrains.io;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -22,7 +19,6 @@ public class IoUtils {
                 Files.createDirectory(userDir);
             }
         }
-
         InputStream is = new FileInputStream(root.resolve("1.txt").toFile());
         OutputStream os = new FileOutputStream(root.resolve("dir1").resolve("copy.txt").toString());
         byte[] buffer = new byte[8129];
@@ -36,5 +32,4 @@ public class IoUtils {
             System.out.println(new String(buffer, 0, readBytes));
         }
     }
-
 }

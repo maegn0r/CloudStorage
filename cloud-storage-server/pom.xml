@@ -25,7 +25,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.geekbrains.io.IoUtils</mainClass>
+                            <mainClass>com.geekbrains.io.Server</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
