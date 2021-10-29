@@ -2,9 +2,7 @@ package com.geekbrains.netty;
 
 import com.geekbrains.model.*;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.util.ReferenceCountUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -16,6 +14,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand> {
     private Path currentDir = Server.ROOT_DIR;
+    private ClientStatus clientStatus = new ClientStatus();
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, AbstractCommand msg) throws Exception {
@@ -34,15 +33,49 @@ public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand>
                 break;
             case TOUCH: doTouch(ctx, (TouchCommand)msg);
                 break;
+            case UPLOAD: doUpload(ctx,(UploadCommand)msg);
+                break;
+            case UPLOAD_DATA_COMMAND: doUploadData((UploadDataCommand) msg);
+                break;
+            case DOWNLOAD: doDownload(ctx,(DownloadRequestCommand) msg);
+                break;
             default: ctx.writeAndFlush(new InfoMessage("Unknown command!"));
         }
     }
 
-    private void doTouch(ChannelHandlerContext ctx, TouchCommand msg) throws IOException {
+    private void doDownload(ChannelHandlerContext ctx, DownloadRequestCommand msg) throws IOException {
+        Path path = currentDir.resolve(msg.getFileName()).normalize();
+        if (Files.exists(path)){
+            clientStatus.setCurrentAction(ActionType.DOWNLOAD);
+            clientStatus.setFileSize(Files.size(path));
+            clientStatus.setCurrentPart(0);
+            clientStatus.setCurrentFileName(currentDir.resolve(msg.getFileName()).normalize());
+            FileUtils.sendFile(ctx,clientStatus);
+        } else ctx.writeAndFlush(new InfoMessage("File not found"));
+    }
+
+    private void doUploadData(UploadDataCommand msg) throws IOException {
+        FileUtils.uploadPart(clientStatus, msg);
+    }
+
+    private void doUpload(ChannelHandlerContext ctx, UploadCommand msg) throws IOException {
+        boolean result = doTouch(ctx, new TouchCommand(msg.getFileName()));
+            if (result){
+                clientStatus.setCurrentAction(ActionType.UPLOAD);
+                clientStatus.setFileSize(msg.getFileSize());
+                clientStatus.setCurrentPart(0);
+                clientStatus.setCurrentFileName(currentDir.resolve(msg.getFileName()).normalize());
+        } else {
+            ctx.writeAndFlush(new InfoMessage("File with same name already exists"));
+        }
+    }
+
+    private boolean doTouch(ChannelHandlerContext ctx, TouchCommand msg) throws IOException {
         Path path = currentDir.resolve(msg.getNewFile()).normalize();
         if (Files.exists(path)){
             ctx.writeAndFlush(new InfoMessage("File with same name already exists"));
         } else Files.createFile(path);
+        return true;
     }
 
     private void doMKDir(ChannelHandlerContext ctx, MKDirCommand msg) throws IOException {
