@@ -10,7 +10,7 @@ public class UploadCommand extends AbstractCommand{
 
 
     public UploadCommand(String fileName, long fileSize, int partsCount) {
-        this.type = MessageType.UPLOAD;
+        this.type = CommandType.UPLOAD;
         this.fileName = fileName;
         this.fileSize = fileSize;
         this.partsCount = partsCount;

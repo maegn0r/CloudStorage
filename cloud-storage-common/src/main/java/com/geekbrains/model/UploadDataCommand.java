@@ -16,7 +16,7 @@ public class UploadDataCommand extends AbstractCommand{
         this.partsCount = partsCount;
         this.bufferSize = bufferSize;
         this.byteArray = Arrays.copyOf(byteArray,bufferSize);
-        this.type = MessageType.UPLOAD_DATA_COMMAND;
+        this.type = CommandType.UPLOAD_DATA_COMMAND;
     }
 }
 

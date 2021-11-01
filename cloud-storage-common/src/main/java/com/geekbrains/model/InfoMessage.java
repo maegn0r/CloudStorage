@@ -8,6 +8,6 @@ public class InfoMessage extends AbstractCommand {
 
     public InfoMessage(String message) {
         this.message = message;
-        this.type = MessageType.INFO;
+        this.type = CommandType.INFO;
     }
 }

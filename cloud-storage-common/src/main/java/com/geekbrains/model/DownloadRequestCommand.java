@@ -9,6 +9,6 @@ public class DownloadRequestCommand extends AbstractCommand{
 
     public DownloadRequestCommand(String fileName) {
         this.fileName = fileName;
-        this.type = MessageType.DOWNLOAD;
+        this.type = CommandType.DOWNLOAD;
     }
 }

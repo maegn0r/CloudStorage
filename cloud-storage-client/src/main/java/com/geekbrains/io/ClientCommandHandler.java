@@ -2,9 +2,11 @@ package com.geekbrains.io;
 
 import com.geekbrains.model.*;
 import com.sun.javafx.collections.ImmutableObservableList;
+import dialogs.Dialogs;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import javafx.application.Platform;
+import javafx.scene.control.Alert;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -30,7 +32,9 @@ public class ClientCommandHandler extends SimpleChannelInboundHandler<AbstractCo
         switch (msg.getType()){
             case INFO:
                 String message = ((InfoMessage)msg).getMessage();
-                Platform.runLater(() -> controller.label.setText(message));
+//                Platform.runLater(() -> controller.label.setText(message));
+           //     Dialogs.AuthError.INVALID_CREDENTIALS.show();
+                Platform.runLater(()-> Dialogs.showDialog(Alert.AlertType.ERROR, "Сообщение от сервера", "Внимание", message));
                     break;
             case LS_FILES:
                 String [] arr = ((LSFileCommand) msg).getFileList().toArray(new String[0]);
@@ -51,6 +55,8 @@ public class ClientCommandHandler extends SimpleChannelInboundHandler<AbstractCo
                 UploadDataCommand data = (UploadDataCommand) msg;
                 FileUtils.uploadPart(clientStatus,data);
                 break;
+            case AUTH_OK:
+                Platform.runLater(() -> App.INSTANCE.switchToMainWindow());
         }
     }
 }

@@ -8,6 +8,6 @@ public class ChangeDirCommand extends AbstractCommand{
 
     public ChangeDirCommand(String destinationDir) {
         this.destinationDir = destinationDir;
-        this.type = MessageType.CHANGE_DIR;
+        this.type = CommandType.CHANGE_DIR;
     }
 }
