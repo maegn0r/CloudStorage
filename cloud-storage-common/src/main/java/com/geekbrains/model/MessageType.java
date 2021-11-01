@@ -9,5 +9,6 @@ public enum MessageType {
     CHANGE_DIR,
     TOUCH,
     INFO,
-    LS_FILES
+    LS_FILES,
+    UPLOAD_DATA_COMMAND
 }
