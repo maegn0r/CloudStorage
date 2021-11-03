@@ -1,6 +1,7 @@
 package com.geekbrains.netty;
 
 import com.geekbrains.model.*;
+import com.geekbrains.netty.auth.IAuthService;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +14,14 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand> {
-    private Path currentDir = Server.ROOT_DIR;
+    private Path currentDir;
+    private Path mainUserDir;
     private ClientStatus clientStatus = new ClientStatus();
+    private IAuthService authService;
+
+    public CommandHandler (IAuthService authService1){
+        this.authService = authService1;
+    }
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, AbstractCommand msg) throws Exception {
@@ -28,18 +35,36 @@ public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand>
                 break;
             case CHANGE_DIR:
                 doChangeDir(ctx,(ChangeDirCommand)msg);
+                doLS(ctx);
                 break;
             case MK_DIR: doMKDir(ctx,(MKDirCommand)msg);
+                doLS(ctx);
                 break;
             case TOUCH: doTouch(ctx, (TouchCommand)msg);
+                doLS(ctx);
                 break;
             case UPLOAD: doUpload(ctx,(UploadCommand)msg);
                 break;
             case UPLOAD_DATA_COMMAND: doUploadData((UploadDataCommand) msg);
+                doLS(ctx);
                 break;
             case DOWNLOAD: doDownload(ctx,(DownloadRequestCommand) msg);
                 break;
+            case AUTH:
+                checkAuth(ctx, (AuthCommandData) msg);
+                break;
             default: ctx.writeAndFlush(new InfoMessage("Unknown command!"));
+        }
+    }
+
+    private void checkAuth(ChannelHandlerContext ctx, AuthCommandData msg) throws IOException {
+        if(authService.checkLoginAndPassword(msg.getLogin(), msg.getPassword())){
+            ctx.writeAndFlush(new AuthOkCommand());
+            clientStatus.setLogIn(true);
+            checkUserDir(ctx, msg);
+            doLS(ctx);
+        } else {
+            ctx.writeAndFlush(new InfoMessage("Неверные логин и пароль"));
         }
     }
 
@@ -88,7 +113,7 @@ public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand>
     private void doChangeDir(ChannelHandlerContext ctx, ChangeDirCommand msg) {
         Path path = currentDir.resolve(msg.getDestinationDir()).normalize();
         if (Files.isDirectory(path) && Files.exists(path)) {
-            if (path.startsWith(Server.ROOT_DIR)) {
+            if (path.startsWith(mainUserDir)) {
                 currentDir = path;
             }
             ctx.flush();
@@ -101,5 +126,15 @@ public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand>
     private void doLS(ChannelHandlerContext ctx) throws IOException {
         List<String> result = Files.list(currentDir).map(item -> item.getFileName().toString()).collect(Collectors.toList());
         ctx.writeAndFlush(new LSFileCommand(result));
+    }
+    private void checkUserDir (ChannelHandlerContext ctx, AuthCommandData msg) throws IOException {
+        Path path = Server.ROOT_DIR.resolve(msg.getLogin()).normalize();
+        if (clientStatus.isLogIn()){
+            if (!Files.exists(path)){
+                Files.createDirectory(path);
+            }
+           mainUserDir = path;
+            currentDir = path;
+        }
     }
 }

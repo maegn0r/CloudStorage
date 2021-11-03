@@ -78,4 +78,5 @@ public class Network {
     public void send(AbstractCommand command){
         currentChannel.writeAndFlush(command);
     }
+
 }

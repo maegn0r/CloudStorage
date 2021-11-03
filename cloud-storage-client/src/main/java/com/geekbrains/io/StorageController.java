@@ -25,7 +25,7 @@ public class StorageController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        new Thread(() -> Network.getInstance().start(this)).start();
+
         initListFiles();
     }
 
@@ -47,7 +47,9 @@ public class StorageController implements Initializable {
     private void parseMessage(String message) {
         String[] arr = message.split(" ");
 
-        if (arr[0].equals("ls")) {
+        if(arr[0].equals("refresh")){
+            initListFiles();
+        }else if (arr[0].equals("ls")) {
             Network.getInstance().sendLS(new LSCommand());
         } else if (arr[0].equals("mkdir")) {
             Network.getInstance().sendMKDir(new MKDirCommand(arr[1]));

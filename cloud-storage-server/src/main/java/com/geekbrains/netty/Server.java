@@ -1,5 +1,7 @@
 package com.geekbrains.netty;
 
+import com.geekbrains.netty.auth.IAuthService;
+import com.geekbrains.netty.auth.PersistentDbAuthService;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -21,8 +23,11 @@ import java.nio.file.Paths;
 @Slf4j
 public class Server {
     public final static Path ROOT_DIR = Paths.get("rootDir");
+    private IAuthService authService;
 
     public Server() {
+        authService = new PersistentDbAuthService();
+        authService.start();
         EventLoopGroup auth = new NioEventLoopGroup(1);
         EventLoopGroup worker = new NioEventLoopGroup();
         try {
@@ -35,7 +40,7 @@ public class Server {
                             channel.pipeline().addLast(
                                     new ObjectDecoder(100 * 1024 * 1024, ClassResolvers.cacheDisabled(null)),
                                     new ObjectEncoder(),
-                                    new CommandHandler()
+                                    new CommandHandler(authService)
                             );
                         }
                     });

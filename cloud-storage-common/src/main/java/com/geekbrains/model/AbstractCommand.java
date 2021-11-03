@@ -6,5 +6,5 @@ import java.io.Serializable;
 
 @Getter
 public abstract class AbstractCommand implements Serializable {
-    protected MessageType type;
+    protected CommandType type;
 }

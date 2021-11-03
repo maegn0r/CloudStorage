@@ -11,6 +11,6 @@ public class LSFileCommand extends AbstractCommand {
 
     public LSFileCommand(List<String> fileList) {
         this.fileList = fileList;
-        this.type = MessageType.LS_FILES;
+        this.type = CommandType.LS_FILES;
     }
 }

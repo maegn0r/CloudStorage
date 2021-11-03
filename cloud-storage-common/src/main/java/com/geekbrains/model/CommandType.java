@@ -1,7 +1,9 @@
 package com.geekbrains.model;
 
-public enum MessageType {
+public enum CommandType {
     AUTH,
+    AUTH_OK,
+    ERROR,
     UPLOAD,
     DOWNLOAD,
     LS,
