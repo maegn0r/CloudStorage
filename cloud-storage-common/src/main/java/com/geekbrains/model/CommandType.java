@@ -12,5 +12,6 @@ public enum CommandType {
     TOUCH,
     INFO,
     LS_FILES,
-    UPLOAD_DATA_COMMAND
+    UPLOAD_DATA_COMMAND,
+    DELETE
 }

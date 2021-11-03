@@ -53,7 +53,25 @@ public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand>
             case AUTH:
                 checkAuth(ctx, (AuthCommandData) msg);
                 break;
+            case DELETE:
+                doDelete(ctx, (DeleteCommand) msg);
+                break;
             default: ctx.writeAndFlush(new InfoMessage("Unknown command!"));
+        }
+    }
+
+    private void doDelete(ChannelHandlerContext ctx, DeleteCommand msg) throws IOException {
+        Path path = currentDir.resolve(msg.getFileName()).normalize();
+        if(Files.isRegularFile(path)){
+            Files.delete(path);
+            doLS(ctx);
+        }else {
+            if(Files.list(path).collect(Collectors.toList()).size() > 0){
+                ctx.writeAndFlush(new InfoMessage("Папка не пуста! Проверьте содержимое папки."));
+            }else {
+                Files.delete(path);
+                doLS(ctx);
+            }
         }
     }
 

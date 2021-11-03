@@ -1,6 +1,7 @@
 package com.geekbrains.io;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
@@ -33,6 +34,8 @@ public class App extends Application {
     public void start(Stage primaryStage) throws Exception {
         this.primaryStage = primaryStage;
         initViews();
+        primaryStage.setOnCloseRequest(e -> {Platform.exit(); System.exit(0);});
+        authStage.setOnCloseRequest(e -> {Platform.exit(); System.exit(0);});
         getStorageWindowStage().show();
         getAuthStage().show();
         new Thread(() -> Network.getInstance().start(getStorageController())).start();
