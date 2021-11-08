@@ -32,8 +32,6 @@ public class ClientCommandHandler extends SimpleChannelInboundHandler<AbstractCo
         switch (msg.getType()){
             case INFO:
                 String message = ((InfoMessage)msg).getMessage();
-//                Platform.runLater(() -> controller.label.setText(message));
-           //     Dialogs.AuthError.INVALID_CREDENTIALS.show();
                 Platform.runLater(()-> Dialogs.showDialog(Alert.AlertType.ERROR, "Сообщение от сервера", "Внимание", message));
                     break;
             case LS_FILES:

@@ -2,30 +2,38 @@ package com.geekbrains.io;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 import com.geekbrains.model.*;
 import com.sun.javafx.collections.ImmutableObservableList;
-import javafx.event.ActionEvent;
+import dialogs.Dialogs;
+import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import lombok.Getter;
 
 public class StorageController implements Initializable {
 
-    public ListView<String> listView;
-    public TextField input;
-    public ListView<String> serverListView;
-    public Label label;
+    public ListView<String> listView;   //num 1
+    public ListView<String> serverListView; //num 2
+    public Button upload;
+    public Button download;
     @Getter
     private final String FILE_ROOT_PATH = "StorageDir";
+    private Path curClientDir;
+
+    private int activeNum = -1;
 
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
+        this.curClientDir = Paths.get(FILE_ROOT_PATH);
         initListFiles();
     }
 
@@ -38,50 +46,117 @@ public class StorageController implements Initializable {
         listView.setItems(new ImmutableObservableList<>(filesList));
     }
 
-    public void send(ActionEvent actionEvent) throws IOException {
-        String message = input.getText();
-        parseMessage(message);
-        input.clear();
-    }
+    private void refreshListFiles() throws IOException {
+        List<String> list = Files.list(curClientDir).map(item -> item.getFileName().toString()).collect(Collectors.toList());
 
-    private void parseMessage(String message) {
-        String[] arr = message.split(" ");
-
-        if(arr[0].equals("refresh")){
-            initListFiles();
-        }else if (arr[0].equals("ls")) {
-            Network.getInstance().sendLS(new LSCommand());
-        } else if (arr[0].equals("mkdir")) {
-            Network.getInstance().sendMKDir(new MKDirCommand(arr[1]));
-        } else if (arr[0].equals("touch")) {
-            Network.getInstance().sendTouch(new TouchCommand(arr[1]));
-        } else if (arr[0].equals("cd")) {
-            Network.getInstance().sendChangeDir(new ChangeDirCommand(arr[1]));
-        } else if (arr[0].equals("upload")) {
-            filePrepare(arr[1]);
-        } else if (arr[0].equals("download")) {
-            Network.getInstance().send(new DownloadRequestCommand(arr[1]));
-        }
+        listView.setItems(new ImmutableObservableList<>(list.toArray(new String[list.size()])));
     }
 
     private void filePrepare(String s) {
         File file = new File(FILE_ROOT_PATH + "/" + s);
-        if (file.exists()){
+        if (file.exists()) {
             long size = file.length();
             String fileName = file.getName();
-            int partCount = (int) ((size/1024) + 1);
-            Network.getInstance().send(new UploadCommand(fileName,size, partCount));
-            if (size>0){
-                try (FileInputStream fis = new FileInputStream(file)){
+            int partCount = (int) ((size / 1024) + 1);
+            Network.getInstance().send(new UploadCommand(fileName, size, partCount));
+            if (size > 0) {
+                try (FileInputStream fis = new FileInputStream(file)) {
                     byte[] bytebuf = new byte[1024];
                     int readBytes;
                     for (int i = 0; i < partCount; i++) {
                         readBytes = fis.read(bytebuf);
-                        Network.getInstance().send(new UploadDataCommand(fileName, i+1,readBytes,bytebuf));
+                        Network.getInstance().send(new UploadDataCommand(fileName, i + 1, readBytes, bytebuf));
                     }
-                } catch (IOException e){
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
+            }
+        }
+    }
+
+    @FXML
+    private void doUpload() {
+        String selectedItem = listView.getSelectionModel().getSelectedItem();
+        if (selectedItem != null) {
+            filePrepare(selectedItem);
+        }
+        Network.getInstance().sendLS(new LSCommand());
+    }
+
+    @FXML
+    private void doDownload() throws IOException {
+        String selectedItem = serverListView.getSelectionModel().getSelectedItem();
+        if (selectedItem != null) {
+            Network.getInstance().send(new DownloadRequestCommand(selectedItem));
+        }
+        Path path = Paths.get(FILE_ROOT_PATH);
+        List<String> result = Files.list(path).map(item -> item.getFileName().toString()).collect(Collectors.toList());
+        String[] arr = result.toArray(new String[0]);
+        listView.setItems(new ImmutableObservableList<>(arr));
+    }
+
+    public void doRefresh(MouseEvent mouseEvent) throws IOException {
+        if (activeNum == 1) {
+            refreshListFiles();
+        } else if (activeNum == 2) {
+            Network.getInstance().send(new LSCommand());
+        }
+    }
+
+    public void listClientClick(MouseEvent mouseEvent) throws IOException {
+        activeNum = 1;
+        if(mouseEvent.getClickCount() == 2){
+            String selected = listView.getSelectionModel().getSelectedItem();
+            if(selected != null && Files.isDirectory(curClientDir.resolve(selected).normalize())){
+                doClientCD(selected);
+            }
+        }
+    }
+
+    private void doClientCD(String selected) throws IOException {
+        curClientDir = curClientDir.resolve(selected).normalize();
+        refreshListFiles();
+    }
+
+    public void listServerClick(MouseEvent mouseEvent) {
+        activeNum = 2;
+        if(mouseEvent.getClickCount() == 2){
+            String selected = serverListView.getSelectionModel().getSelectedItem();
+            if(selected != null && selected.split("\\.").length == 1){
+                Network.getInstance().send(new ChangeDirCommand(selected));
+            }
+        }
+    }
+
+    public void doCDUp(MouseEvent mouseEvent) throws IOException {
+        if(activeNum == 1){
+            curClientDir = curClientDir.resolve("..").normalize();
+            refreshListFiles();
+        }else if(activeNum == 2){
+            Network.getInstance().send(new ChangeDirCommand(".."));
+        }
+    }
+
+    public void doDelete(MouseEvent mouseEvent) throws IOException {
+        if(activeNum == 1){
+            String selected = listView.getSelectionModel().getSelectedItem();
+            if(selected != null){
+                Path path = curClientDir.resolve(selected).normalize();
+                if(Files.isRegularFile(path)){
+                    Files.delete(path);
+                }else {
+                    if(Files.list(path).collect(Collectors.toList()).size() > 0){
+                        Dialogs.showDialog(Alert.AlertType.ERROR, "Внимание", "Предупреждение", "Папка не пуста! Проверьте содержимое папки.");
+                    }else {
+                        Files.delete(path);
+                    }
+                }
+                refreshListFiles();
+            }
+        }else if(activeNum == 2){
+            String selected = serverListView.getSelectionModel().getSelectedItem();
+            if(selected != null){
+                Network.getInstance().send(new DeleteCommand(selected));
             }
         }
     }

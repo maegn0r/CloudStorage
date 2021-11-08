@@ -3,9 +3,12 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="538.0" prefWidth="672.0" xmlns="http://javafx.com/javafx/11.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.geekbrains.io.StorageController">
-    <ListView fx:id="listView" layoutX="16.0" layoutY="14.0" prefHeight="475.0" prefWidth="312.0" />
-    <TextField fx:id="input" layoutX="16.0" layoutY="489.0" onAction="#send" prefHeight="36.0" prefWidth="312.0" />
-    <ListView fx:id="serverListView" layoutX="345.0" layoutY="14.0" prefHeight="475.0" prefWidth="312.0" />
-    <Label fx:id="label" layoutX="345.0" layoutY="489.0" prefHeight="36.0" prefWidth="312.0" />
+<AnchorPane prefHeight="488.0" prefWidth="672.0" xmlns="http://javafx.com/javafx/11.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.geekbrains.io.StorageController">
+    <ListView fx:id="listView" layoutX="16.0" layoutY="14.0" onMouseClicked="#listClientClick" prefHeight="349.0" prefWidth="312.0" />
+    <ListView fx:id="serverListView" layoutX="345.0" layoutY="14.0" onMouseClicked="#listServerClick" prefHeight="349.0" prefWidth="312.0" />
+   <Button fx:id="upload" layoutX="88.0" layoutY="376.0" mnemonicParsing="false" onMouseClicked="#doUpload" text="Загрузить" />
+   <Button fx:id="download" layoutX="513.0" layoutY="376.0" mnemonicParsing="false" onMouseClicked="#doDownload" prefHeight="25.0" prefWidth="85.0" text="Скачать" />
+   <Button fx:id="refreshBtn" layoutX="301.0" layoutY="414.0" mnemonicParsing="false" onMouseClicked="#doRefresh" text="Обновить" />
+   <Button layoutX="295.0" layoutY="376.0" mnemonicParsing="false" onMouseClicked="#doCDUp" prefHeight="25.0" prefWidth="85.0" text="Вверх" />
+   <Button layoutX="294.0" layoutY="449.0" mnemonicParsing="false" onMouseClicked="#doDelete" prefHeight="25.0" prefWidth="85.0" text="Удалить" />
 </AnchorPane>
