@@ -63,18 +63,6 @@ public class Network {
         currentChannel.writeAndFlush(command);
     }
 
-    public void sendTouch(TouchCommand command) {
-        currentChannel.writeAndFlush(command);
-    }
-
-    public void sendChangeDir(ChangeDirCommand command) {
-        currentChannel.writeAndFlush(command);
-    }
-
-    public void sendMKDir(MKDirCommand command) {
-        currentChannel.writeAndFlush(command);
-    }
-
     public void send(AbstractCommand command){
         currentChannel.writeAndFlush(command);
     }

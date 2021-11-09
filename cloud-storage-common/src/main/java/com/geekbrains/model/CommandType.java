@@ -13,5 +13,6 @@ public enum CommandType {
     INFO,
     LS_FILES,
     UPLOAD_DATA_COMMAND,
-    DELETE
+    DELETE,
+    CHANGE_NAME_COMMAND
 }

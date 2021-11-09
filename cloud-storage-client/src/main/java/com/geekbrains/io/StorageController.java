@@ -12,10 +12,12 @@ import java.util.stream.Collectors;
 import com.geekbrains.model.*;
 import com.sun.javafx.collections.ImmutableObservableList;
 import dialogs.Dialogs;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import lombok.Getter;
 
 public class StorageController implements Initializable {
@@ -26,9 +28,21 @@ public class StorageController implements Initializable {
     public Button download;
     @Getter
     private final String FILE_ROOT_PATH = "StorageDir";
+    public Button renameBtn;
+    public Button createBtn;
+    @Getter
     private Path curClientDir;
+    public static StorageController INSTANCE;
 
     private int activeNum = -1;
+
+    public int getActiveNum() {
+        return activeNum;
+    }
+
+    public StorageController(){
+        INSTANCE = this;
+    }
 
 
     @Override
@@ -159,6 +173,24 @@ public class StorageController implements Initializable {
                 Network.getInstance().send(new DeleteCommand(selected));
             }
         }
+    }
+
+    public void openChangeNameWindow(MouseEvent mouseEvent) {
+        App instance = App.INSTANCE;
+        instance.getChangeNameController().setCommandType(CommandType.CHANGE_NAME_COMMAND);
+        instance.getChangeNameController().setLabel("Введите новое имя:");
+        instance.getChangeNameController().setOldName(serverListView.getSelectionModel().getSelectedItem());
+        instance.getChangeNameStage().show();
+    }
+    public void getRefreshFiles() throws IOException {
+        refreshListFiles();
+    }
+
+    public void createFile(MouseEvent mouseEvent) {
+        App instance = App.INSTANCE;
+        instance.getChangeNameController().setCommandType(CommandType.TOUCH);
+        instance.getChangeNameController().setLabel("Введите имя для создаваемого файла:");
+        instance.getChangeNameStage().show();
     }
 }
 

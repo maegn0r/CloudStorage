@@ -1,5 +1,6 @@
 package com.geekbrains.io;
 
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -18,11 +19,14 @@ public class App extends Application {
 
     private static final String STORAGE_WINDOW_FXML = "storageWindow.fxml";
     private static final String AUTH_DIALOG_FXML = "authDialog.fxml";
+    private static final String CHANGE_NAME_FXML = "changeName.fxml";
 
     private Stage primaryStage;
     private Stage authStage;
+    private Stage changeNameStage;
     private FXMLLoader storageWindowLoader;
     private FXMLLoader authLoader;
+    private FXMLLoader changeNameLoader;
 
 
     @Override
@@ -41,6 +45,10 @@ public class App extends Application {
         new Thread(() -> Network.getInstance().start(getStorageController())).start();
     }
 
+    public Stage getChangeNameStage() {
+        return changeNameStage;
+    }
+
     public Stage getPrimaryStage() {
         return primaryStage;
     }
@@ -57,9 +65,27 @@ public class App extends Application {
         return storageWindowLoader.getController();
     }
 
+    public ChangeNameController getChangeNameController(){
+        return changeNameLoader.getController();
+    }
+
     private void initViews() throws IOException {
         initChatWindow();
         initAuthDialog();
+        initChangeNameDialog();
+    }
+
+
+    void initChangeNameDialog() throws IOException {
+        changeNameLoader = new FXMLLoader();
+        changeNameLoader.setLocation(App.class.getResource(CHANGE_NAME_FXML));
+        Parent changeNamePanel = changeNameLoader.load();
+
+        changeNameStage = new Stage();
+        changeNameStage.initOwner(primaryStage);
+        changeNameStage.initModality(Modality.WINDOW_MODAL);
+        changeNameStage.setScene(new Scene(changeNamePanel));
+
     }
 
     private void initChatWindow() throws IOException {
