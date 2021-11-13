@@ -4,10 +4,10 @@ import lombok.Getter;
 
 @Getter
 public class TouchCommand extends AbstractCommand {
-    private String newFile;
+    private String newName;
 
-    public TouchCommand(String newFile) {
-        this.newFile = newFile;
+    public TouchCommand(String newName) {
+        this.newName = newName;
         this.type = CommandType.TOUCH;
     }
 }

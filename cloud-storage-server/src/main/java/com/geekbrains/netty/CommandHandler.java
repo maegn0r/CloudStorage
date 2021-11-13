@@ -41,7 +41,6 @@ public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand>
                 doLS(ctx);
                 break;
             case TOUCH: doTouch(ctx, (TouchCommand)msg);
-                doLS(ctx);
                 break;
             case UPLOAD: doUpload(ctx,(UploadCommand)msg);
                 break;
@@ -56,7 +55,10 @@ public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand>
             case DELETE:
                 doDelete(ctx, (DeleteCommand) msg);
                 break;
-            default: ctx.writeAndFlush(new InfoMessage("Unknown command!"));
+            case CHANGE_NAME_COMMAND:
+                doChangeName(ctx,(ChangeNameCommand) msg);
+                break;
+            default: ctx.writeAndFlush(new InfoMessage("Неизвестная команда!"));
         }
     }
 
@@ -94,7 +96,7 @@ public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand>
             clientStatus.setCurrentPart(0);
             clientStatus.setCurrentFileName(currentDir.resolve(msg.getFileName()).normalize());
             FileUtils.sendFile(ctx,clientStatus);
-        } else ctx.writeAndFlush(new InfoMessage("File not found"));
+        } else ctx.writeAndFlush(new InfoMessage("Файл не найден"));
     }
 
     private void doUploadData(UploadDataCommand msg) throws IOException {
@@ -109,22 +111,25 @@ public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand>
                 clientStatus.setCurrentPart(0);
                 clientStatus.setCurrentFileName(currentDir.resolve(msg.getFileName()).normalize());
         } else {
-            ctx.writeAndFlush(new InfoMessage("File with same name already exists"));
+            ctx.writeAndFlush(new InfoMessage("Файл с таким именем уже существует"));
         }
     }
 
     private boolean doTouch(ChannelHandlerContext ctx, TouchCommand msg) throws IOException {
-        Path path = currentDir.resolve(msg.getNewFile()).normalize();
+        Path path = currentDir.resolve(msg.getNewName()).normalize();
         if (Files.exists(path)){
-            ctx.writeAndFlush(new InfoMessage("File with same name already exists"));
-        } else Files.createFile(path);
+            ctx.writeAndFlush(new InfoMessage("Файл с таким именем уже существует"));
+        } else {
+            Files.createFile(path);
+            doLS(ctx);
+        }
         return true;
     }
 
     private void doMKDir(ChannelHandlerContext ctx, MKDirCommand msg) throws IOException {
         Path path = currentDir.resolve(msg.getNewDir()).normalize();
         if (Files.exists(path)){
-            ctx.writeAndFlush(new InfoMessage("Directory with same name already exists"));
+            ctx.writeAndFlush(new InfoMessage("Папка с таким именем уже существует"));
         } else Files.createDirectory(path);
     }
 
@@ -136,7 +141,7 @@ public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand>
             }
             ctx.flush();
         } else {
-            String errMessage = "Directory not found!";
+            String errMessage = "Папка не найдена!";
             ctx.writeAndFlush(new InfoMessage(errMessage));
         }
     }
@@ -154,5 +159,10 @@ public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand>
            mainUserDir = path;
             currentDir = path;
         }
+    }
+    private void doChangeName (ChannelHandlerContext ctx, ChangeNameCommand msg) throws IOException {
+        Path path = currentDir.resolve(msg.getOldName()).normalize();
+        Files.move(path, path.resolveSibling(msg.getNewName()));
+        doLS(ctx);
     }
 }

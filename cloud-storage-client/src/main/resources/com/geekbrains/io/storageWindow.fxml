@@ -11,4 +11,6 @@
    <Button fx:id="refreshBtn" layoutX="301.0" layoutY="414.0" mnemonicParsing="false" onMouseClicked="#doRefresh" text="Обновить" />
    <Button layoutX="295.0" layoutY="376.0" mnemonicParsing="false" onMouseClicked="#doCDUp" prefHeight="25.0" prefWidth="85.0" text="Вверх" />
    <Button layoutX="294.0" layoutY="449.0" mnemonicParsing="false" onMouseClicked="#doDelete" prefHeight="25.0" prefWidth="85.0" text="Удалить" />
+   <Button fx:id="renameBtn" layoutX="172.0" layoutY="376.0" mnemonicParsing="false" onMouseClicked="#openChangeNameWindow" prefHeight="25.0" prefWidth="107.0" text="Переименовать" />
+   <Button fx:id="createBtn" layoutX="393.0" layoutY="376.0" mnemonicParsing="false" onMouseClicked="#createFile" prefHeight="25.0" prefWidth="107.0" text="Создать файл" />
 </AnchorPane>

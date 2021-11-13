@@ -37,6 +37,7 @@ public class ClientCommandHandler extends SimpleChannelInboundHandler<AbstractCo
             case LS_FILES:
                 String [] arr = ((LSFileCommand) msg).getFileList().toArray(new String[0]);
                 Platform.runLater(()-> controller.serverListView.setItems(new ImmutableObservableList<>(arr)));
+                Platform.runLater(() ->App.INSTANCE.getChangeNameStage().close());
                 break;
             case UPLOAD:
                 UploadCommand command = (UploadCommand) msg;
