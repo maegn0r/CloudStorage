@@ -12,14 +12,28 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 @Slf4j
 public class ClientCommandHandler extends SimpleChannelInboundHandler<AbstractCommand> {
     private final StorageController controller;
+    private Callback call;
     private ClientStatus clientStatus = new ClientStatus();
 
     public ClientCommandHandler(StorageController controller) {
         this.controller = controller;
+        this.call = new Callback() {
+            @Override
+            public void callback() throws IOException {
+                Platform.runLater(() -> {
+                    try {
+                        StorageController.INSTANCE.getRefreshFiles();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+        };
     }
 
     @Override
@@ -35,24 +49,31 @@ public class ClientCommandHandler extends SimpleChannelInboundHandler<AbstractCo
                 Platform.runLater(()-> Dialogs.showDialog(Alert.AlertType.ERROR, "Сообщение от сервера", "Внимание", message));
                     break;
             case LS_FILES:
-                String [] arr = ((LSFileCommand) msg).getFileList().toArray(new String[0]);
-                Platform.runLater(()-> controller.serverListView.setItems(new ImmutableObservableList<>(arr)));
-                Platform.runLater(() ->App.INSTANCE.getChangeNameStage().close());
+                // String [] arr = ((LSFileCommand) msg).getFileList().toArray(new String[0]);
+                // Platform.runLater(()-> controller.serverListView.setItems(new ImmutableObservableList<>(arr)));
+                List<FileInfo> list = ((LSFileCommand) msg).getFileList();
+
+                Platform.runLater(() -> {
+                    App.INSTANCE.getChangeNameStage().close();
+                    StorageController.INSTANCE.serverListView.getItems().clear();
+                    StorageController.INSTANCE.serverListView.getItems().addAll(list);
+                });
                 break;
             case UPLOAD:
                 UploadCommand command = (UploadCommand) msg;
                 Path path = Paths.get(controller.getFILE_ROOT_PATH() +  "/" + command.getFileName());
-                boolean result = FileUtils.touchFile(path);
+                boolean result = FileUtils.touchFile(path, call);
                 if (result){
                     clientStatus.setCurrentFileName(path);
                     clientStatus.setFileSize(command.getFileSize());
                     clientStatus.setCurrentPart(0);
+                    clientStatus.setPartsCount(((UploadCommand) msg).getPartsCount());
                     clientStatus.setCurrentAction(ActionType.DOWNLOAD);
                 }
                 break;
             case UPLOAD_DATA_COMMAND:
                 UploadDataCommand data = (UploadDataCommand) msg;
-                FileUtils.uploadPart(clientStatus,data);
+                FileUtils.uploadPart(clientStatus, data, call);
                 break;
             case AUTH_OK:
                 Platform.runLater(() -> App.INSTANCE.switchToMainWindow());

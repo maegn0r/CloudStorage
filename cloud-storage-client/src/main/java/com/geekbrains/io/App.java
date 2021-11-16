@@ -1,6 +1,5 @@
 package com.geekbrains.io;
 
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -65,7 +64,7 @@ public class App extends Application {
         return storageWindowLoader.getController();
     }
 
-    public ChangeNameController getChangeNameController(){
+    public AskNameController getChangeNameController(){
         return changeNameLoader.getController();
     }
 

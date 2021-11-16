@@ -44,7 +44,7 @@ public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand>
                 break;
             case UPLOAD: doUpload(ctx,(UploadCommand)msg);
                 break;
-            case UPLOAD_DATA_COMMAND: doUploadData((UploadDataCommand) msg);
+            case UPLOAD_DATA_COMMAND: doUploadData(ctx, (UploadDataCommand) msg);
                 doLS(ctx);
                 break;
             case DOWNLOAD: doDownload(ctx,(DownloadRequestCommand) msg);
@@ -90,17 +90,22 @@ public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand>
 
     private void doDownload(ChannelHandlerContext ctx, DownloadRequestCommand msg) throws IOException {
         Path path = currentDir.resolve(msg.getFileName()).normalize();
-        if (Files.exists(path)){
+        if (Files.exists(path) && !Files.isDirectory(path)){
             clientStatus.setCurrentAction(ActionType.DOWNLOAD);
             clientStatus.setFileSize(Files.size(path));
             clientStatus.setCurrentPart(0);
             clientStatus.setCurrentFileName(currentDir.resolve(msg.getFileName()).normalize());
             FileUtils.sendFile(ctx,clientStatus);
-        } else ctx.writeAndFlush(new InfoMessage("Файл не найден"));
+        } else ctx.writeAndFlush(new InfoMessage("Папку скачать пока нельзя"));
     }
 
-    private void doUploadData(UploadDataCommand msg) throws IOException {
-        FileUtils.uploadPart(clientStatus, msg);
+    private void doUploadData(ChannelHandlerContext ctx, UploadDataCommand msg) throws IOException {
+        FileUtils.uploadPart(clientStatus, msg, new Callback() {
+            @Override
+            public void callback() throws IOException {
+                doLS(ctx);
+            }
+        });
     }
 
     private void doUpload(ChannelHandlerContext ctx, UploadCommand msg) throws IOException {
@@ -133,13 +138,15 @@ public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand>
         } else Files.createDirectory(path);
     }
 
-    private void doChangeDir(ChannelHandlerContext ctx, ChangeDirCommand msg) {
+    private void doChangeDir(ChannelHandlerContext ctx, ChangeDirCommand msg) throws IOException {
+        System.out.println("1");
         Path path = currentDir.resolve(msg.getDestinationDir()).normalize();
         if (Files.isDirectory(path) && Files.exists(path)) {
+            System.out.println("2");
             if (path.startsWith(mainUserDir)) {
                 currentDir = path;
             }
-            ctx.flush();
+    //        ctx.flush();
         } else {
             String errMessage = "Папка не найдена!";
             ctx.writeAndFlush(new InfoMessage(errMessage));
@@ -147,7 +154,8 @@ public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand>
     }
 
     private void doLS(ChannelHandlerContext ctx) throws IOException {
-        List<String> result = Files.list(currentDir).map(item -> item.getFileName().toString()).collect(Collectors.toList());
+       // List<FileInfo> result = Files.list(currentDir).map(item -> item.getFileName().toString()).collect(Collectors.toList());
+        List<FileInfo> result = Files.list(currentDir).map(item -> new FileInfo(item)).collect(Collectors.toList());
         ctx.writeAndFlush(new LSFileCommand(result));
     }
     private void checkUserDir (ChannelHandlerContext ctx, AuthCommandData msg) throws IOException {

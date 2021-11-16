@@ -7,9 +7,9 @@ import java.util.List;
 
 @Getter
 public class LSFileCommand extends AbstractCommand {
-    private List<String> fileList;
+    private List<FileInfo> fileList;
 
-    public LSFileCommand(List<String> fileList) {
+    public LSFileCommand(List<FileInfo> fileList) {
         this.fileList = fileList;
         this.type = CommandType.LS_FILES;
     }
