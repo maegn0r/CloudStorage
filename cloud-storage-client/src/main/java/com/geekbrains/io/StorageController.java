@@ -25,11 +25,11 @@ public class StorageController implements Initializable {
 
     public ListView<FileInfo> listView;   //num 1
     public ListView<FileInfo> serverListView; //num 2
-    public Button upload,download, renameBtn, createBtn, createDirBtn, refreshBtn, upBtn, deleteBtn;
-//    public Button download;
+    public Button upload, download, renameBtn, createBtn, createDirBtn, refreshBtn, upBtn, deleteBtn;
+    //    public Button download;
     @Getter
     private final String FILE_ROOT_PATH = "StorageDir";
-//    public Button renameBtn;
+    //    public Button renameBtn;
 //    public Button createBtn;
 //    public Button createDirBtn;
     @Getter
@@ -37,7 +37,7 @@ public class StorageController implements Initializable {
     public static StorageController INSTANCE;
 
 
-    public StorageController(){
+    public StorageController() {
         INSTANCE = this;
     }
 
@@ -52,7 +52,7 @@ public class StorageController implements Initializable {
             public ListCell<FileInfo> call(ListView<FileInfo> param) {
                 return new ListCell<FileInfo>() {
                     @Override
-                    protected void updateItem (FileInfo item, boolean empty){
+                    protected void updateItem(FileInfo item, boolean empty) {
                         super.updateItem(item, empty);
                         if (item == null || empty) {
                             setText(null);
@@ -76,7 +76,7 @@ public class StorageController implements Initializable {
             public ListCell<FileInfo> call(ListView<FileInfo> param) {
                 return new ListCell<FileInfo>() {
                     @Override
-                    protected void updateItem (FileInfo item, boolean empty){
+                    protected void updateItem(FileInfo item, boolean empty) {
                         super.updateItem(item, empty);
                         if (item == null || empty) {
                             setText(null);
@@ -96,10 +96,10 @@ public class StorageController implements Initializable {
             }
         });
         download.setFocusTraversable(false);
-        setFocusOff(upload,download, renameBtn, createBtn, createDirBtn, refreshBtn, upBtn, deleteBtn);
+        setFocusOff(upload, download, renameBtn, createBtn, createDirBtn, refreshBtn, upBtn, deleteBtn);
     }
 
-    private void setFocusOff(Button ... buttons) {
+    private void setFocusOff(Button... buttons) {
         for (Button button : buttons) {
             button.setFocusTraversable(false);
         }
@@ -116,9 +116,9 @@ public class StorageController implements Initializable {
     }
 
     private void refreshListFiles() throws IOException {
-           List<FileInfo> list = Files.list(curClientDir).map(item -> new FileInfo(item)).collect(Collectors.toList());
-           listView.getItems().clear();
-           listView.getItems().addAll(list);
+        List<FileInfo> list = Files.list(curClientDir).map(item -> new FileInfo(item)).collect(Collectors.toList());
+        listView.getItems().clear();
+        listView.getItems().addAll(list);
     }
 
 
@@ -147,7 +147,7 @@ public class StorageController implements Initializable {
     @FXML
     private void doUpload() {
         FileInfo selectedItem = listView.getSelectionModel().getSelectedItem();
-        if (serverListView.getItems().stream().map(FileInfo::getFileName).anyMatch(item -> item.equals(selectedItem.getFileName())))  {
+        if (serverListView.getItems().stream().map(FileInfo::getFileName).anyMatch(item -> item.equals(selectedItem.getFileName()))) {
             Dialogs.showDialog(Alert.AlertType.ERROR, "Внимание", "Предупреждение", "Файл с таким именем уже существует! Переименуйте или удалите этот файл.");
         } else {
             if (selectedItem != null) {
@@ -160,7 +160,7 @@ public class StorageController implements Initializable {
     @FXML
     private void doDownload() throws IOException {
         FileInfo selectedItem = serverListView.getSelectionModel().getSelectedItem();
-        if (Files.list(curClientDir).map(item -> item.getFileName().toString()).anyMatch(item -> item.equals(selectedItem.getFileName()))){
+        if (Files.list(curClientDir).map(item -> item.getFileName().toString()).anyMatch(item -> item.equals(selectedItem.getFileName()))) {
             Dialogs.showDialog(Alert.AlertType.ERROR, "Внимание", "Предупреждение", "Файл с таким именем уже существует! Переименуйте или удалите этот файл.");
         } else {
             if (selectedItem != null) {
@@ -179,9 +179,9 @@ public class StorageController implements Initializable {
     }
 
     public void listClientClick(MouseEvent mouseEvent) throws IOException {
-        if(mouseEvent.getClickCount() == 2){
+        if (mouseEvent.getClickCount() == 2) {
             FileInfo selected = listView.getSelectionModel().getSelectedItem();
-            if(selected != null && Files.isDirectory(curClientDir.resolve(selected.getFileName()).normalize())){
+            if (selected != null && Files.isDirectory(curClientDir.resolve(selected.getFileName()).normalize())) {
                 doClientCD(selected.getFileName());
             }
         }
@@ -193,43 +193,43 @@ public class StorageController implements Initializable {
     }
 
     public void listServerClick(MouseEvent mouseEvent) throws IOException {
-        if(mouseEvent.getClickCount() == 2){
+        if (mouseEvent.getClickCount() == 2) {
             FileInfo selected = serverListView.getSelectionModel().getSelectedItem();
-            if(selected != null && selected.getFileSize() == -1){
+            if (selected != null && selected.getFileSize() == -1) {
                 Network.getInstance().send(new ChangeDirCommand(selected.getFileName()));
             }
         }
     }
 
     public void doCDUp(MouseEvent mouseEvent) throws IOException {
-        if(listView.isFocused()){
+        if (listView.isFocused()) {
             curClientDir = curClientDir.resolve("..").normalize();
             refreshListFiles();
-        }else if(serverListView.isFocused()){
+        } else if (serverListView.isFocused()) {
             Network.getInstance().send(new ChangeDirCommand(".."));
             refreshListFiles();
         }
     }
 
     public void doDelete(MouseEvent mouseEvent) throws IOException {
-        if(listView.isFocused()){
+        if (listView.isFocused()) {
             FileInfo selected = listView.getSelectionModel().getSelectedItem();
-            if(selected != null){
+            if (selected != null) {
                 Path path = curClientDir.resolve(selected.getFileName()).normalize();
-                if(Files.isRegularFile(path)){
+                if (Files.isRegularFile(path)) {
                     Files.delete(path);
-                }else {
-                    if(Files.list(path).collect(Collectors.toList()).size() > 0){
+                } else {
+                    if (Files.list(path).collect(Collectors.toList()).size() > 0) {
                         Dialogs.showDialog(Alert.AlertType.ERROR, "Внимание", "Предупреждение", "Папка не пуста! Проверьте содержимое папки.");
-                    }else {
+                    } else {
                         Files.delete(path);
                     }
                 }
                 refreshListFiles();
             }
-        }else if(serverListView.isFocused()){
+        } else if (serverListView.isFocused()) {
             FileInfo selected = serverListView.getSelectionModel().getSelectedItem();
-            if(selected != null){
+            if (selected != null) {
                 Network.getInstance().send(new DeleteCommand(selected.getFileName()));
             }
         }
@@ -238,13 +238,13 @@ public class StorageController implements Initializable {
     public void renameFile(MouseEvent mouseEvent) {
         if (listView.isFocused()) {
             FileInfo fis = listView.getSelectionModel().getSelectedItem();
-            if (fis == null){
+            if (fis == null) {
                 return;
             }
             App.INSTANCE.getChangeNameController().setOldName(fis.getFileName());
         } else {
             FileInfo fis = serverListView.getSelectionModel().getSelectedItem();
-            if (fis == null){
+            if (fis == null) {
                 return;
             }
             App.INSTANCE.getChangeNameController().setOldName(fis.getFileName());
@@ -256,6 +256,7 @@ public class StorageController implements Initializable {
         instance.getChangeNameController().newNameField.setText("");
         instance.getChangeNameStage().show();
     }
+
     public void getRefreshFiles() throws IOException {
         refreshListFiles();
     }

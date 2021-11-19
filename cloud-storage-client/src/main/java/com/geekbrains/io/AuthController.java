@@ -4,12 +4,15 @@ import com.geekbrains.model.AuthCommandData;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import dialogs.Dialogs;
 
 public class AuthController {
 
+    @FXML
+    public CheckBox checkIsNew;
     @FXML
     private TextField loginField;
     @FXML
@@ -26,6 +29,6 @@ public class AuthController {
             Dialogs.AuthError.EMPTY_CREDENTIALS.show();
             return;
         }
-        Network.getInstance().send(new AuthCommandData(login, password));
+        Network.getInstance().send(new AuthCommandData(login, password, !checkIsNew.isIndeterminate() && checkIsNew.isSelected()));
     }
 }

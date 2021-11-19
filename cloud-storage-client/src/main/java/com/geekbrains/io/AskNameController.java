@@ -61,10 +61,10 @@ public class AskNameController {
             if (commandType == CommandType.CHANGE_NAME_COMMAND) {
                 if (activeNum == 1) {
 
-                        Path path = StorageController.INSTANCE.getCurClientDir().resolve(oldName).normalize();
-                        Files.move(path, path.resolveSibling(newName));
-                        StorageController.INSTANCE.getRefreshFiles();
-                        App.INSTANCE.getChangeNameStage().close();
+                    Path path = StorageController.INSTANCE.getCurClientDir().resolve(oldName).normalize();
+                    Files.move(path, path.resolveSibling(newName));
+                    StorageController.INSTANCE.getRefreshFiles();
+                    App.INSTANCE.getChangeNameStage().close();
 
                 } else if (activeNum == 2) {
                     Network.getInstance().send(new ChangeNameCommand(oldName, newName));
@@ -72,31 +72,31 @@ public class AskNameController {
                 }
             } else if (commandType == CommandType.TOUCH) {
                 if (activeNum == 1) {
-                        Path path = StorageController.INSTANCE.getCurClientDir().resolve(newName).normalize();
-                        if (Files.exists(path)) {
-                            Dialogs.showDialog(Alert.AlertType.ERROR, "Внимание!", "Предупреждение", "Файл с таким именем уже существует!");
-                            newNameField.setText("");
-                        } else {
-                            Files.createFile(path);
-                            StorageController.INSTANCE.getRefreshFiles();
-                            App.INSTANCE.getChangeNameStage().close();
-                        }
+                    Path path = StorageController.INSTANCE.getCurClientDir().resolve(newName).normalize();
+                    if (Files.exists(path)) {
+                        Dialogs.showDialog(Alert.AlertType.ERROR, "Внимание!", "Предупреждение", "Файл с таким именем уже существует!");
+                        newNameField.setText("");
+                    } else {
+                        Files.createFile(path);
+                        StorageController.INSTANCE.getRefreshFiles();
+                        App.INSTANCE.getChangeNameStage().close();
+                    }
                 } else if (activeNum == 2) {
-                        Network.getInstance().send(new TouchCommand(newName));
+                    Network.getInstance().send(new TouchCommand(newName));
                 }
             } else if (commandType == CommandType.MK_DIR) {
                 if (activeNum == 1) {
-                        Path path = StorageController.INSTANCE.getCurClientDir().resolve(newName).normalize();
-                        if (Files.exists(path)) {
-                            Dialogs.showDialog(Alert.AlertType.ERROR, "Внимание!", "Предупреждение", "Файл с таким именем уже существует!");
-                            newNameField.setText("");
-                        } else {
-                            Files.createDirectory(path);
-                            StorageController.INSTANCE.getRefreshFiles();
-                            App.INSTANCE.getChangeNameStage().close();
-                        }
+                    Path path = StorageController.INSTANCE.getCurClientDir().resolve(newName).normalize();
+                    if (Files.exists(path)) {
+                        Dialogs.showDialog(Alert.AlertType.ERROR, "Внимание!", "Предупреждение", "Файл с таким именем уже существует!");
+                        newNameField.setText("");
+                    } else {
+                        Files.createDirectory(path);
+                        StorageController.INSTANCE.getRefreshFiles();
+                        App.INSTANCE.getChangeNameStage().close();
+                    }
                 } else if (activeNum == 2) {
-                        Network.getInstance().send(new MKDirCommand(newName));
+                    Network.getInstance().send(new MKDirCommand(newName));
                 }
             }
         }

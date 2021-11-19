@@ -13,13 +13,13 @@ public class FileInfo implements Serializable {
     private long fileSize;
 
     public FileInfo(Path path) {
-      try {
-          this.fileName = path.getFileName().toString();
-          if (Files.isDirectory(path)) {
-              this.fileSize = -1L;
-          } else this.fileSize = Files.size(path);
-      } catch (IOException ioex){
-          throw new RuntimeException("Что-то пошло не так с файлом: " + path.getFileName().toAbsolutePath());
-      }
+        try {
+            this.fileName = path.getFileName().toString();
+            if (Files.isDirectory(path)) {
+                this.fileSize = -1L;
+            } else this.fileSize = Files.size(path);
+        } catch (IOException ioex) {
+            throw new RuntimeException("Что-то пошло не так с файлом: " + path.getFileName().toAbsolutePath());
+        }
     }
 }

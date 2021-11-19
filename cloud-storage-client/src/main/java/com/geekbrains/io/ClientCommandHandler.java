@@ -43,11 +43,11 @@ public class ClientCommandHandler extends SimpleChannelInboundHandler<AbstractCo
     }
 
     private void handleCommand(ChannelHandlerContext ctx, AbstractCommand msg) throws IOException {
-        switch (msg.getType()){
+        switch (msg.getType()) {
             case INFO:
-                String message = ((InfoMessage)msg).getMessage();
-                Platform.runLater(()-> Dialogs.showDialog(Alert.AlertType.ERROR, "Сообщение от сервера", "Внимание", message));
-                    break;
+                String message = ((InfoMessage) msg).getMessage();
+                Platform.runLater(() -> Dialogs.showDialog(Alert.AlertType.ERROR, "Сообщение от сервера", "Внимание", message));
+                break;
             case LS_FILES:
                 // String [] arr = ((LSFileCommand) msg).getFileList().toArray(new String[0]);
                 // Platform.runLater(()-> controller.serverListView.setItems(new ImmutableObservableList<>(arr)));
@@ -61,9 +61,9 @@ public class ClientCommandHandler extends SimpleChannelInboundHandler<AbstractCo
                 break;
             case UPLOAD:
                 UploadCommand command = (UploadCommand) msg;
-                Path path = Paths.get(controller.getFILE_ROOT_PATH() +  "/" + command.getFileName());
+                Path path = Paths.get(controller.getFILE_ROOT_PATH() + "/" + command.getFileName());
                 boolean result = FileUtils.touchFile(path, call);
-                if (result){
+                if (result) {
                     clientStatus.setCurrentFileName(path);
                     clientStatus.setFileSize(command.getFileSize());
                     clientStatus.setCurrentPart(0);
