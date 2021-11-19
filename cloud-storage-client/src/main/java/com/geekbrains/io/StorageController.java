@@ -147,19 +147,27 @@ public class StorageController implements Initializable {
     @FXML
     private void doUpload() {
         FileInfo selectedItem = listView.getSelectionModel().getSelectedItem();
-        if (selectedItem != null) {
-            filePrepare(selectedItem);
+        if (serverListView.getItems().stream().map(FileInfo::getFileName).anyMatch(item -> item.equals(selectedItem.getFileName())))  {
+            Dialogs.showDialog(Alert.AlertType.ERROR, "Внимание", "Предупреждение", "Файл с таким именем уже существует! Переименуйте или удалите этот файл.");
+        } else {
+            if (selectedItem != null) {
+                filePrepare(selectedItem);
+            }
+            Network.getInstance().send(new LSCommand());
         }
-        Network.getInstance().send(new LSCommand());
     }
 
     @FXML
     private void doDownload() throws IOException {
         FileInfo selectedItem = serverListView.getSelectionModel().getSelectedItem();
-        if (selectedItem != null) {
-            Network.getInstance().send(new DownloadRequestCommand(selectedItem.getFileName()));
+        if (Files.list(curClientDir).map(item -> item.getFileName().toString()).anyMatch(item -> item.equals(selectedItem.getFileName()))){
+            Dialogs.showDialog(Alert.AlertType.ERROR, "Внимание", "Предупреждение", "Файл с таким именем уже существует! Переименуйте или удалите этот файл.");
+        } else {
+            if (selectedItem != null) {
+                Network.getInstance().send(new DownloadRequestCommand(selectedItem.getFileName()));
+            }
+            refreshListFiles();
         }
-        refreshListFiles();
     }
 
     public void doRefresh(MouseEvent mouseEvent) throws IOException {
