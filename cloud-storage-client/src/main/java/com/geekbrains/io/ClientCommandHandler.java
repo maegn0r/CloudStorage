@@ -49,8 +49,6 @@ public class ClientCommandHandler extends SimpleChannelInboundHandler<AbstractCo
                 Platform.runLater(() -> Dialogs.showDialog(Alert.AlertType.ERROR, "Сообщение от сервера", "Внимание", message));
                 break;
             case LS_FILES:
-                // String [] arr = ((LSFileCommand) msg).getFileList().toArray(new String[0]);
-                // Platform.runLater(()-> controller.serverListView.setItems(new ImmutableObservableList<>(arr)));
                 List<FileInfo> list = ((LSFileCommand) msg).getFileList();
 
                 Platform.runLater(() -> {

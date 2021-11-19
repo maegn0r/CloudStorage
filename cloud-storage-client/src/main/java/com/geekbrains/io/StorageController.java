@@ -10,9 +10,7 @@ import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
 import com.geekbrains.model.*;
-import com.sun.javafx.collections.ImmutableObservableList;
 import dialogs.Dialogs;
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -26,12 +24,10 @@ public class StorageController implements Initializable {
     public ListView<FileInfo> listView;   //num 1
     public ListView<FileInfo> serverListView; //num 2
     public Button upload, download, renameBtn, createBtn, createDirBtn, refreshBtn, upBtn, deleteBtn;
-    //    public Button download;
+
     @Getter
     private final String FILE_ROOT_PATH = "StorageDir";
-    //    public Button renameBtn;
-//    public Button createBtn;
-//    public Button createDirBtn;
+
     @Getter
     private Path curClientDir;
     public static StorageController INSTANCE;
