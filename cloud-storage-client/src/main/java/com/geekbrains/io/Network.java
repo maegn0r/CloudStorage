@@ -59,10 +59,6 @@ public class Network {
         }
     }
 
-    public void sendLS(LSCommand command) {
-        currentChannel.writeAndFlush(command);
-    }
-
     public void send(AbstractCommand command){
         currentChannel.writeAndFlush(command);
     }

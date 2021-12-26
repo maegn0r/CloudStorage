@@ -3,11 +3,11 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="202.0" prefWidth="317.0" xmlns="http://javafx.com/javafx/11.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.geekbrains.io.ChangeNameController">
+<AnchorPane prefHeight="202.0" prefWidth="317.0" xmlns="http://javafx.com/javafx/11.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.geekbrains.io.AskNameController">
    <children>
       <Label fx:id="label" layoutX="16.0" layoutY="41.0" prefHeight="17.0" prefWidth="283.0" AnchorPane.bottomAnchor="144.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="18.0" AnchorPane.topAnchor="41.0" />
       <TextField fx:id="newNameField" layoutX="14.0" layoutY="58.0" prefHeight="25.0" prefWidth="289.0" />
-      <Button fx:id="doneNewNameButton" layoutX="14.0" layoutY="150.0" mnemonicParsing="false" onAction="#executeChangeName" prefHeight="25.0" prefWidth="127.0" text="Ок" />
+      <Button fx:id="doneNewNameButton" layoutX="14.0" layoutY="150.0" mnemonicParsing="false" onAction="#executeRenameTouchMakeDir" prefHeight="25.0" prefWidth="127.0" text="Ок" />
       <Button fx:id="iWantOldNameButton" layoutX="169.0" layoutY="150.0" mnemonicParsing="false" onAction="#closeChangeNameWindow" prefHeight="25.0" prefWidth="134.0" text="Отмена" />
    </children>
 </AnchorPane>

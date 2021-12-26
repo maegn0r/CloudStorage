@@ -7,20 +7,23 @@ public class PersistentDbAuthService implements IAuthService {
     private static final String DB_URL = "jdbc:sqlite:auth.db";
     private Connection connection;
     private PreparedStatement checkLoginPass;
+    private PreparedStatement createNewUser;
 
     @Override
     public void start() {
         try {
-            System.out.println("Creating DB connection...");
+            System.out.println("Выполняем соединение с базой данных...");
             connection = DriverManager.getConnection(DB_URL);
-            System.out.println("DB connection is created successfully");
+            System.out.println("Соединение с базой данных установлено.");
             checkLoginPass = createCheckStatement();
+            createNewUser = createNewUserStatement();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
-            System.err.println("Failed to connect to DB by URL: " + DB_URL);
-            throw new RuntimeException("Failed to start auth service");
+            System.err.println("Не удалось подсоединиться к базе данных по адресу: " + DB_URL);
+            throw new RuntimeException("Ошибка аутентификации");
         }
     }
+
 
     @Override
     public boolean checkLoginAndPassword(String login, String password) {
@@ -37,7 +40,7 @@ public class PersistentDbAuthService implements IAuthService {
             resultSet.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
-            System.err.printf("Failed to fetch username from DB. Login: %s; password: %s%n", login, password);
+            System.err.printf("Не найден пользователь в базе данных. Login: %s; password: %s%n", login, password);
         }
         return result;
     }
@@ -55,6 +58,27 @@ public class PersistentDbAuthService implements IAuthService {
                 throw new RuntimeException("Failed to stop auth service");
             }
         }
+    }
+
+    @Override
+    public boolean createNewUser(String login, String password) {
+        boolean result = false;
+        try {
+            createNewUser.setString(1, login);
+            createNewUser.setString(2, password);
+            result = createNewUser.executeUpdate() == 1;
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+            System.err.printf("Произошла ошибка при создании пользователя. Login: %s; password: %s%n", login, password);
+        }
+
+        return result;
+    }
+
+    private PreparedStatement createNewUserStatement() throws SQLException {
+        return connection.prepareStatement("INSERT INTO 'logins' (login,password) VALUES (?,?)");
+
     }
 
     private PreparedStatement createCheckStatement() throws SQLException {

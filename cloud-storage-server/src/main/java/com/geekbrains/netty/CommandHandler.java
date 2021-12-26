@@ -19,7 +19,7 @@ public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand>
     private ClientStatus clientStatus = new ClientStatus();
     private IAuthService authService;
 
-    public CommandHandler (IAuthService authService1){
+    public CommandHandler(IAuthService authService1) {
         this.authService = authService1;
     }
 
@@ -31,23 +31,29 @@ public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand>
 
     private void handleCommand(ChannelHandlerContext ctx, AbstractCommand msg) throws IOException {
         switch (msg.getType()) {
-            case LS: doLS(ctx);
+            case LS:
+                doLS(ctx);
                 break;
             case CHANGE_DIR:
-                doChangeDir(ctx,(ChangeDirCommand)msg);
+                doChangeDir(ctx, (ChangeDirCommand) msg);
                 doLS(ctx);
                 break;
-            case MK_DIR: doMKDir(ctx,(MKDirCommand)msg);
+            case MK_DIR:
+                doMKDir(ctx, (MKDirCommand) msg);
                 doLS(ctx);
                 break;
-            case TOUCH: doTouch(ctx, (TouchCommand)msg);
+            case TOUCH:
+                doTouch(ctx, (TouchCommand) msg);
                 break;
-            case UPLOAD: doUpload(ctx,(UploadCommand)msg);
+            case UPLOAD:
+                doUpload(ctx, (UploadCommand) msg);
                 break;
-            case UPLOAD_DATA_COMMAND: doUploadData((UploadDataCommand) msg);
+            case UPLOAD_DATA_COMMAND:
+                doUploadData(ctx, (UploadDataCommand) msg);
                 doLS(ctx);
                 break;
-            case DOWNLOAD: doDownload(ctx,(DownloadRequestCommand) msg);
+            case DOWNLOAD:
+                doDownload(ctx, (DownloadRequestCommand) msg);
                 break;
             case AUTH:
                 checkAuth(ctx, (AuthCommandData) msg);
@@ -56,21 +62,22 @@ public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand>
                 doDelete(ctx, (DeleteCommand) msg);
                 break;
             case CHANGE_NAME_COMMAND:
-                doChangeName(ctx,(ChangeNameCommand) msg);
+                doChangeName(ctx, (ChangeNameCommand) msg);
                 break;
-            default: ctx.writeAndFlush(new InfoMessage("Неизвестная команда!"));
+            default:
+                ctx.writeAndFlush(new InfoMessage("Неизвестная команда!"));
         }
     }
 
     private void doDelete(ChannelHandlerContext ctx, DeleteCommand msg) throws IOException {
         Path path = currentDir.resolve(msg.getFileName()).normalize();
-        if(Files.isRegularFile(path)){
+        if (Files.isRegularFile(path)) {
             Files.delete(path);
             doLS(ctx);
-        }else {
-            if(Files.list(path).collect(Collectors.toList()).size() > 0){
+        } else {
+            if (Files.list(path).collect(Collectors.toList()).size() > 0) {
                 ctx.writeAndFlush(new InfoMessage("Папка не пуста! Проверьте содержимое папки."));
-            }else {
+            } else {
                 Files.delete(path);
                 doLS(ctx);
             }
@@ -78,38 +85,54 @@ public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand>
     }
 
     private void checkAuth(ChannelHandlerContext ctx, AuthCommandData msg) throws IOException {
-        if(authService.checkLoginAndPassword(msg.getLogin(), msg.getPassword())){
-            ctx.writeAndFlush(new AuthOkCommand());
-            clientStatus.setLogIn(true);
-            checkUserDir(ctx, msg);
-            doLS(ctx);
+        if (msg.isNewUser()) {
+            if (authService.createNewUser(msg.getLogin(), msg.getPassword())) {
+                ctx.writeAndFlush(new AuthOkCommand());
+                clientStatus.setLogIn(true);
+                checkUserDir(ctx, msg);
+                doLS(ctx);
+            } else {
+                ctx.writeAndFlush(new InfoMessage("Пользователь с таким логином уже существует"));
+            }
         } else {
-            ctx.writeAndFlush(new InfoMessage("Неверные логин и пароль"));
+            if (authService.checkLoginAndPassword(msg.getLogin(), msg.getPassword())) {
+                ctx.writeAndFlush(new AuthOkCommand());
+                clientStatus.setLogIn(true);
+                checkUserDir(ctx, msg);
+                doLS(ctx);
+            } else {
+                ctx.writeAndFlush(new InfoMessage("Неверные логин и пароль"));
+            }
         }
     }
 
     private void doDownload(ChannelHandlerContext ctx, DownloadRequestCommand msg) throws IOException {
         Path path = currentDir.resolve(msg.getFileName()).normalize();
-        if (Files.exists(path)){
+        if (Files.exists(path) && !Files.isDirectory(path)) {
             clientStatus.setCurrentAction(ActionType.DOWNLOAD);
             clientStatus.setFileSize(Files.size(path));
             clientStatus.setCurrentPart(0);
             clientStatus.setCurrentFileName(currentDir.resolve(msg.getFileName()).normalize());
-            FileUtils.sendFile(ctx,clientStatus);
-        } else ctx.writeAndFlush(new InfoMessage("Файл не найден"));
+            FileUtils.sendFile(ctx, clientStatus);
+        } else ctx.writeAndFlush(new InfoMessage("Папку скачать пока нельзя"));
     }
 
-    private void doUploadData(UploadDataCommand msg) throws IOException {
-        FileUtils.uploadPart(clientStatus, msg);
+    private void doUploadData(ChannelHandlerContext ctx, UploadDataCommand msg) throws IOException {
+        FileUtils.uploadPart(clientStatus, msg, new Callback() {
+            @Override
+            public void callback() throws IOException {
+                doLS(ctx);
+            }
+        });
     }
 
     private void doUpload(ChannelHandlerContext ctx, UploadCommand msg) throws IOException {
         boolean result = doTouch(ctx, new TouchCommand(msg.getFileName()));
-            if (result){
-                clientStatus.setCurrentAction(ActionType.UPLOAD);
-                clientStatus.setFileSize(msg.getFileSize());
-                clientStatus.setCurrentPart(0);
-                clientStatus.setCurrentFileName(currentDir.resolve(msg.getFileName()).normalize());
+        if (result) {
+            clientStatus.setCurrentAction(ActionType.UPLOAD);
+            clientStatus.setFileSize(msg.getFileSize());
+            clientStatus.setCurrentPart(0);
+            clientStatus.setCurrentFileName(currentDir.resolve(msg.getFileName()).normalize());
         } else {
             ctx.writeAndFlush(new InfoMessage("Файл с таким именем уже существует"));
         }
@@ -117,7 +140,7 @@ public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand>
 
     private boolean doTouch(ChannelHandlerContext ctx, TouchCommand msg) throws IOException {
         Path path = currentDir.resolve(msg.getNewName()).normalize();
-        if (Files.exists(path)){
+        if (Files.exists(path)) {
             ctx.writeAndFlush(new InfoMessage("Файл с таким именем уже существует"));
         } else {
             Files.createFile(path);
@@ -128,18 +151,19 @@ public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand>
 
     private void doMKDir(ChannelHandlerContext ctx, MKDirCommand msg) throws IOException {
         Path path = currentDir.resolve(msg.getNewDir()).normalize();
-        if (Files.exists(path)){
+        if (Files.exists(path)) {
             ctx.writeAndFlush(new InfoMessage("Папка с таким именем уже существует"));
         } else Files.createDirectory(path);
     }
 
-    private void doChangeDir(ChannelHandlerContext ctx, ChangeDirCommand msg) {
+    private void doChangeDir(ChannelHandlerContext ctx, ChangeDirCommand msg) throws IOException {
+        System.out.println("1");
         Path path = currentDir.resolve(msg.getDestinationDir()).normalize();
         if (Files.isDirectory(path) && Files.exists(path)) {
+            System.out.println("2");
             if (path.startsWith(mainUserDir)) {
                 currentDir = path;
             }
-            ctx.flush();
         } else {
             String errMessage = "Папка не найдена!";
             ctx.writeAndFlush(new InfoMessage(errMessage));
@@ -147,20 +171,22 @@ public class CommandHandler extends SimpleChannelInboundHandler<AbstractCommand>
     }
 
     private void doLS(ChannelHandlerContext ctx) throws IOException {
-        List<String> result = Files.list(currentDir).map(item -> item.getFileName().toString()).collect(Collectors.toList());
+        List<FileInfo> result = Files.list(currentDir).map(item -> new FileInfo(item)).collect(Collectors.toList());
         ctx.writeAndFlush(new LSFileCommand(result));
     }
-    private void checkUserDir (ChannelHandlerContext ctx, AuthCommandData msg) throws IOException {
+
+    private void checkUserDir(ChannelHandlerContext ctx, AuthCommandData msg) throws IOException {
         Path path = Server.ROOT_DIR.resolve(msg.getLogin()).normalize();
-        if (clientStatus.isLogIn()){
-            if (!Files.exists(path)){
+        if (clientStatus.isLogIn()) {
+            if (!Files.exists(path)) {
                 Files.createDirectory(path);
             }
-           mainUserDir = path;
+            mainUserDir = path;
             currentDir = path;
         }
     }
-    private void doChangeName (ChannelHandlerContext ctx, ChangeNameCommand msg) throws IOException {
+
+    private void doChangeName(ChannelHandlerContext ctx, ChangeNameCommand msg) throws IOException {
         Path path = currentDir.resolve(msg.getOldName()).normalize();
         Files.move(path, path.resolveSibling(msg.getNewName()));
         doLS(ctx);

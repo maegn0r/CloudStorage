@@ -15,6 +15,7 @@ public class ClientStatus {
     private Path currentFileName;
     private long fileSize;
     private int currentPart;
+    private int partsCount;
     private boolean isLogIn;
 
 }

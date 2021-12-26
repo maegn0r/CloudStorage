@@ -56,7 +56,7 @@ public class Server {
     }
 
     public static void main(String[] args) throws IOException {
-        if (!Files.exists(ROOT_DIR)){
+        if (!Files.exists(ROOT_DIR)) {
             Files.createDirectory(ROOT_DIR);
         }
         new Server();

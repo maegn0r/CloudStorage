@@ -3,7 +3,6 @@ package com.geekbrains.model;
 public enum CommandType {
     AUTH,
     AUTH_OK,
-    ERROR,
     UPLOAD,
     DOWNLOAD,
     LS,

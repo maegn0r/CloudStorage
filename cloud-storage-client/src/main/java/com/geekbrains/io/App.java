@@ -1,6 +1,5 @@
 package com.geekbrains.io;
 
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -38,8 +37,14 @@ public class App extends Application {
     public void start(Stage primaryStage) throws Exception {
         this.primaryStage = primaryStage;
         initViews();
-        primaryStage.setOnCloseRequest(e -> {Platform.exit(); System.exit(0);});
-        authStage.setOnCloseRequest(e -> {Platform.exit(); System.exit(0);});
+        primaryStage.setOnCloseRequest(e -> {
+            Platform.exit();
+            System.exit(0);
+        });
+        authStage.setOnCloseRequest(e -> {
+            Platform.exit();
+            System.exit(0);
+        });
         getStorageWindowStage().show();
         getAuthStage().show();
         new Thread(() -> Network.getInstance().start(getStorageController())).start();
@@ -65,7 +70,7 @@ public class App extends Application {
         return storageWindowLoader.getController();
     }
 
-    public ChangeNameController getChangeNameController(){
+    public AskNameController getChangeNameController() {
         return changeNameLoader.getController();
     }
 
@@ -97,7 +102,6 @@ public class App extends Application {
 
         setStageForSecondScreen(primaryStage);
     }
-
 
 
     private void initAuthDialog() throws java.io.IOException {
